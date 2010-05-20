@@ -1,9 +1,11 @@
 @import <Foundation/CPObject.j>
 
-SYSTEM = require("system");
+var SYSTEM = require("system"),
+    JSON = require("json");
 
 @implementation OJCoverageReporter : CPObject
 {
+    CPDictionary            foundClasses;
     CPDictionary            foundMethods;
     CPDictionary            calledMethods;
     CPArray                 ignoreClasses;
@@ -32,6 +34,7 @@ SYSTEM = require("system");
 
 - (void)reset
 {
+    foundClasses = [CPDictionary dictionary];
     foundMethods = [CPDictionary dictionary];
     calledMethods = [CPDictionary dictionary];
 }
@@ -56,7 +59,22 @@ SYSTEM = require("system");
         || [[[aMethod klass] description] hasPrefix:@"_"]
         || [[[aMethod klass] description] hasPrefix:@"$"]
         || [[[aMethod klass] description] hasPrefix:@"OJ"]) return;
-    
+   
+    if (![foundClasses containsKey:[aMethod klass]])
+    {
+        var klass = [aMethod klass];
+        var method_list = klass.method_list.concat(klass.isa.method_list);
+
+        for (var i = 0; i < method_list.length; i++)
+        {
+            var selectorName = method_list[i].name;
+            var selector = [OJCoverageSelector selectorWithClassName:klass selector:selectorName];
+            [self foundMethod:selector];
+        }
+
+        [foundClasses setObject:YES forKey:[aMethod klass]];
+    }
+
     [calledMethods setObject:[calledMethods objectForKey:aMethod]+1 forKey:aMethod];
 }
 

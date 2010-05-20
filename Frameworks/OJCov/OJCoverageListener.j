@@ -4,8 +4,8 @@
 @import "OJCoverageSelector.j"
 
 var og_objj_msgSend = objj_msgSend;
-var og_class_addMethod = class_addMethod;
-var og_class_addMethods = class_addMethods;
+//var og_class_addMethod = class_addMethod;
+//var og_class_addMethods = class_addMethods;
 
 SHOULD_APPEND = YES;
 
@@ -26,7 +26,7 @@ SHOULD_APPEND = YES;
         return og_objj_msgSend.apply(this, arguments);
     }
     
-    class_addMethod = function(aClass, aName, anImplementation, aType) {
+    /*class_addMethod = function(aClass, aName, anImplementation, aType) {
         if(aClass != null)
             [delegate foundMethod:[OJCoverageSelector selectorWithClassName:aClass selector:aName]];
         
@@ -39,14 +39,14 @@ SHOULD_APPEND = YES;
                 selectorWithClassName:aClass selector:method.name]];});
         
         og_class_addMethods.apply(this, arguments);
-    }
+    }*/
 }
 
 - (void)stop
 {
     objj_msgSend = og_objj_msgSend;
-    class_addMethod = og_class_addMethod;
-    class_addMethods = og_class_addMethods;
+    //class_addMethod = og_class_addMethod;
+    //class_addMethods = og_class_addMethods;
 }
 
 @end
