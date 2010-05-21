@@ -19,6 +19,11 @@ parser.option("-t", "threshold")
     .def(0.8)
     .set()
     .help("Set the threshold for test coverage to the specified percentage. Implies -c.");
+    
+parser.option("--no-accessors", "no_accessors")
+    .def(false)
+    .set(true)
+    .help("Disable testing accessors for coverage testing. Implies -c.");
 
 parser.helpful();
 
@@ -31,11 +36,11 @@ function main(args) {
         return;
     }
 
-    if (options.coverage || options.threshold)
+    if (options.coverage || options.threshold || options.no_accessors)
     {
         var threshold = options.threshold > 1 ? options.threshold / 100 : options.threshold;
 
-        var runner = [[OJCoverageRunnerText alloc] initWithThreshold:threshold];
+        var runner = [[OJCoverageRunnerText alloc] initWithThreshold:threshold testAccessors:!options.no_accessors];
     }
     else
     {

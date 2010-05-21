@@ -1,7 +1,6 @@
 @import <Foundation/CPObject.j>
 
-var SYSTEM = require("system"),
-    JSON = require("json");
+var SYSTEM = require("system");
 
 @implementation OJCoverageReporter : CPObject
 {
@@ -11,15 +10,17 @@ var SYSTEM = require("system"),
     CPArray                 ignoreClasses;
     
     float                   threshold       @accessors;
+    BOOL                    testAccessors;
 }
 
-- (id)initWithThreshold:(float)aThreshold
+- (id)initWithThreshold:(float)aThreshold testAccessors:(BOOL)doTestAccessors
 {
     self = [super init];
     if(self)
     {
         [self reset];
         threshold = aThreshold;
+        testAccessors = doTestAccessors;
         
         ignoreClasses = ["CPMutableDictionary", "CPString", "CPArray", "CPObject", "CPInvocation", 
             "CPDate", "CPNumber", "CPException"];
@@ -62,17 +63,42 @@ var SYSTEM = require("system"),
    
     if (![foundClasses containsKey:[aMethod klass]])
     {
-        var klass = [aMethod klass];
-        var method_list = klass.method_list.concat(klass.isa.method_list);
+        var aClass = [aMethod klass]; 
+        var methods = class_copyMethodList(aClass).concat(class_copyMethodList(aClass.isa));
 
-        for (var i = 0; i < method_list.length; i++)
+        if (!testAccessors)
         {
-            var selectorName = method_list[i].name;
-            var selector = [OJCoverageSelector selectorWithClassName:klass selector:selectorName];
-            [self foundMethod:selector];
+            var ivars = aClass.ivars;
+            for (var i = 0; i < ivars.length; i++)
+            {
+                var property = ivars[i].name;
+                var getterName = property;
+                var start = property.charAt(0) == '_' ? 1 : 0;
+                var setterName = (start ? "_" : "") + "set" + property.substr(start, 1).toUpperCase() + property.substring(start + 1) + ":";
+                for (var j = 0; j < methods.length; j++)
+                {
+                    var method = methods[j];
+
+                    if (!method)
+                        continue;
+
+                    if (method.name === getterName || method.name === setterName)
+                        delete methods[j];
+                }
+            }
         }
 
-        [foundClasses setObject:YES forKey:[aMethod klass]];
+        for (var i = 0; i < methods.length; i++)
+        {
+            var method = methods[i];
+            if (methods[i])
+            {
+                var selector = [OJCoverageSelector selectorWithClassName:aClass selector:method.name];
+                [self foundMethod:selector];
+            }
+        }
+
+        [foundClasses setObject:YES forKey:aClass];
     }
 
     [calledMethods setObject:[calledMethods objectForKey:aMethod]+1 forKey:aMethod];

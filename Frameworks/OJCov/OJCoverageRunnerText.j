@@ -6,13 +6,13 @@
     OJCoverageReporter      covReporter;
 }
 
-- (void)initWithThreshold:(float)threshold
+- (void)initWithThreshold:(float)threshold testAccessors:(BOOL)testAccessors
 {
     self = [super init];
     if(self)
     {
         covListener = [[OJCoverageListener alloc] init];
-        covReporter = [[OJCoverageReporter alloc] initWithThreshold:threshold];
+        covReporter = [[OJCoverageReporter alloc] initWithThreshold:threshold testAccessors:testAccessors];
         [covListener setDelegate:covReporter];
     }
     return self;
